@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        input, textarea, button {
+            width: 100%;
+            margin-top: 5px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e8e8e8;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Email Generator</h1>
+        <label for="topic">Email Topic:</label>
+        <input type="text" id="topic" placeholder="Enter the topic">
+        
+        <label for="recipient">Recipient Role:</label>
+        <input type="text" id="recipient" placeholder="Enter recipient role (e.g., manager)">
+
+        <button onclick="generateEmail()">Generate Email</button>
+
+        <div class="output" id="output"></div>
+
+        <button onclick="sendEmail()">Send Email</button>
+    </div>
+
+    <script>
+        async function generateEmail() {
+            const topic = document.getElementById("topic").value;
+            const recipient = document.getElementById("recipient").value;
+            
+            const response = await fetch("http://127.0.0.1:5000/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ topic, recipient })
+            });
+
+            const data = await response.json();
+            document.getElementById("output").innerHTML = `
+                <strong>Subject:</strong> ${data.subject}<br>
+                <strong>Body:</strong><br>${data.body}
+            `;
+        }
+
+        async function sendEmail() {
+            const subject = document.querySelector("#output strong:nth-child(1)").innerText.split(": ")[1];
+            const body = document.querySelector("#output strong:nth-child(2)").nextSibling.textContent;
+            const recipient_email = prompt("Enter recipient's email:");
+
+            const response = await fetch("http://127.0.0.1:5000/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ recipient_email, subject, body })
+            });
+
+            const data = await response.json();
+            alert(data.message || data.error);
+        }
+    </script>
+</body>
+</html>
